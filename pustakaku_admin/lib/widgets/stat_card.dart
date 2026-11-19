@@ -7,7 +7,6 @@ class StatCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.icon,
-    required this.change,
     required this.iconColor,
     super.key,
   });
@@ -15,7 +14,6 @@ class StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  final String change;
   final Color iconColor;
 
   @override
@@ -36,20 +34,6 @@ class StatCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: iconColor, size: 22),
-                ),
-                const Spacer(),
-                const Icon(
-                  Icons.trending_up_rounded,
-                  size: 15,
-                  color: AppColors.navy,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  change,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.navy,
-                    fontWeight: FontWeight.w700,
-                  ),
                 ),
               ],
             ),
