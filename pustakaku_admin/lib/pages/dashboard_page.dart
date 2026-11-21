@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../core/constants/app_colors.dart';
 import '../widgets/admin_data_table.dart';
 import '../widgets/admin_page_frame.dart';
@@ -19,6 +18,8 @@ class DashboardPage extends StatelessWidget {
               _buildWelcome(context),
               const SizedBox(height: 24),
               _buildStatistics(constraints.maxWidth),
+              const SizedBox(height: 24),
+              const _FineActivityChartCard(),
               const SizedBox(height: 24),
               const _ActivityChartCard(),
               const SizedBox(height: 24),
@@ -93,6 +94,199 @@ class DashboardPage extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+
+class _FineActivityChartCard extends StatelessWidget {
+  const _FineActivityChartCard();
+
+  // DATA DEMO: total nominal denda setiap bulan.
+  static const List<double> _fineValues = [
+    150000,
+    250000,
+    100000,
+    350000,
+    200000,
+    450000,
+    300000,
+    500000,
+    175000,
+    400000,
+    600000,
+    275000,
+  ];
+
+  static const List<String> _months = [
+    'Jan', 'Feb', 'Mar', 'Apr',
+    'Mei', 'Jun', 'Jul', 'Agu',
+    'Sep', 'Okt', 'Nov', 'Des',
+  ];
+
+  String _rupiah(double value) {
+    return 'Rp${value.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (match) => '.',
+    )}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = _fineValues.reduce((a, b) => a + b);
+    final maxValue = _fineValues.reduce((a, b) => a > b ? a : b);
+    final maxIndex = _fineValues.indexOf(maxValue);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Aktivitas Denda',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Total nominal denda berdasarkan bulan',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.pale.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.payments_outlined,
+                    color: AppColors.navy,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Denda (Data Demo)',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          _rupiah(total),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Tertinggi: ${_months[maxIndex]} • ${_rupiah(maxValue)}',
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              height: 220,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: _FineChartPainter(_fineValues, _months),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FineChartPainter extends CustomPainter {
+  final List<double> values;
+  final List<String> months;
+
+  const _FineChartPainter(this.values, this.months);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const left = 12.0;
+    const right = 8.0;
+    const top = 12.0;
+    const bottom = 28.0;
+
+    final chartWidth = size.width - left - right;
+    final chartHeight = size.height - top - bottom;
+    final maxValue = values.reduce((a, b) => a > b ? a : b);
+    final barWidth = chartWidth / values.length * 0.52;
+    final slotWidth = chartWidth / values.length;
+
+    final gridPaint = Paint()
+      ..color = AppColors.pale
+      ..strokeWidth = 1;
+
+    for (var i = 0; i <= 4; i++) {
+      final y = top + chartHeight * i / 4;
+      canvas.drawLine(
+        Offset(left, y),
+        Offset(size.width - right, y),
+        gridPaint,
+      );
+    }
+
+    for (var i = 0; i < values.length; i++) {
+      final barHeight = chartHeight * values[i] / maxValue;
+      final x = left + slotWidth * i + (slotWidth - barWidth) / 2;
+      final y = top + chartHeight - barHeight;
+
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(x, y, barWidth, barHeight),
+        const Radius.circular(5),
+      );
+
+      canvas.drawRRect(
+        rect,
+        Paint()..color = AppColors.navy,
+      );
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: months[i],
+          style: const TextStyle(
+            fontSize: 10,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      textPainter.paint(
+        canvas,
+        Offset(
+          x + barWidth / 2 - textPainter.width / 2,
+          size.height - 18,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FineChartPainter oldDelegate) {
+    return oldDelegate.values != values ||
+        oldDelegate.months != months;
   }
 }
 

@@ -24,6 +24,31 @@ void main() {
     expect(find.text('Selamat Datang, Admin'), findsOneWidget);
   });
 
+  testWidgets('dashboard stat cards show no trend indicators', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const PustakaKuAdminApp());
+
+    expect(find.text('Total Buku'), findsOneWidget);
+    expect(find.text('2.480'), findsOneWidget);
+    expect(find.text('Total Mahasiswa'), findsOneWidget);
+    expect(find.text('1.254'), findsOneWidget);
+    expect(find.text('Peminjaman Aktif'), findsOneWidget);
+    expect(find.text('186'), findsOneWidget);
+    expect(find.text('Menunggu Persetujuan'), findsOneWidget);
+    expect(find.text('24'), findsOneWidget);
+    expect(find.byIcon(Icons.trending_up_rounded), findsNothing);
+    expect(find.text('+8,2%'), findsNothing);
+    expect(find.text('+5,4%'), findsNothing);
+    expect(find.text('+12%'), findsNothing);
+    expect(find.text('Perlu ditinjau'), findsNothing);
+  });
+
   testWidgets('dashboard remains usable on a small screen', (
     WidgetTester tester,
   ) async {
