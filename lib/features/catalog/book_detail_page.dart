@@ -10,7 +10,7 @@ class BookDetailPage extends StatelessWidget {
   final StudentProfile profile;
   final bool alreadyApplied;
   final VoidCallback onBack;
-  final VoidCallback onBorrow;
+  final ValueChanged<DateTime> onBorrow;
 
   const BookDetailPage({
     super.key,
@@ -110,9 +110,9 @@ class BookDetailPage extends StatelessWidget {
                 SizedBox(height: 6),
                 Text(
                   '• Masa peminjaman 7 hari.\n'
-                  '• Pengajuan menunggu persetujuan petugas.\n'
-                  '• Buku diambil secara langsung di perpustakaan.\n'
-                  '• Jatuh tempo dihitung setelah buku diserahkan petugas.',
+                      '• Pengajuan menunggu persetujuan petugas.\n'
+                      '• Buku diambil secara langsung di perpustakaan.\n'
+                      '• Jatuh tempo dihitung setelah buku diserahkan petugas.',
                 ),
               ],
             ),
@@ -129,8 +129,8 @@ class BookDetailPage extends StatelessWidget {
               alreadyApplied
                   ? 'Sudah diajukan'
                   : book.stock < 1
-                      ? 'Stok habis'
-                      : 'Ajukan Peminjaman',
+                  ? 'Stok habis'
+                  : 'Ajukan Peminjaman',
             ),
           ),
         ),
@@ -146,46 +146,102 @@ class BookDetailPage extends StatelessWidget {
   }
 
   Future<void> _confirmBorrow(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+    DateTime selectedDate = DateTime.now();
+    final confirmed = await showDialog<DateTime>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Peminjaman'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Buku: ${book.title}'),
-              Text(
-                'Nama: ${profile.name.isEmpty ? "Belum diisi" : profile.name}',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          String formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+          return AlertDialog(
+            title: const Text('Form Pengajuan Peminjaman', style: TextStyle(fontWeight: FontWeight.w700)),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _readonlyField('Nama peminjam', profile.name.isEmpty ? 'Belum diisi' : profile.name),
+                    _readonlyField('Nama buku', book.title),
+                    const SizedBox(height: 12),
+                    const Text('Tanggal peminjaman', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.calendar_month),
+                      label: Text(formatDate(selectedDate)),
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (picked != null) setDialogState(() => selectedDate = picked);
+                      },
+                    ),
+                    Text('Tanggal jatuh tempo: ${formatDate(selectedDate.add(const Duration(days: 7)))}'),
+                    const SizedBox(height: 12),
+                    const Text('Kondisi buku sebelum dipinjam',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    const Text('Baik', style: TextStyle(color: Colors.green)),
+                    const SizedBox(height: 12),
+                    const Text('Foto kondisi awal buku',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: pale,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.image_outlined, size: 34, color: navy),
+                          SizedBox(height: 6),
+                          Text('Foto kondisi fisik buku akan ditampilkan di sini.',
+                              textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Data kondisi awal tidak dapat diubah oleh mahasiswa.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
               ),
-              Text(
-                'NIM: ${profile.nim.isEmpty ? "Belum diisi" : profile.nim}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Batal'),
               ),
-              const Text('Masa peminjaman: 7 hari'),
-              const SizedBox(height: 8),
-              const Text(
-                'Pengajuan disimpan di aplikasi dan menunggu persetujuan '
-                'petugas. Buku diambil langsung setelah disetujui.',
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, selectedDate),
+                child: const Text('Kirim Pengajuan'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Kirim Pengajuan'),
-            ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
 
-    if (confirmed == true) {
-      onBorrow();
-    }
+    if (confirmed is DateTime) onBorrow(confirmed);
+  }
+
+
+  Widget _readonlyField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w800)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
   }
 }

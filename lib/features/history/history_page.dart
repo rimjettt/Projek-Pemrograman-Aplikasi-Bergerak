@@ -228,6 +228,20 @@ class _HistoryList extends StatelessWidget {
                           color: Colors.grey,
                         ),
                       ),
+                      if (history.condition != null) ...[
+                        const SizedBox(height: 6),
+                        Text('Kondisi buku saat dikembalikan: ${history.condition}',
+                            style: const TextStyle(fontSize: 12, color: navy)),
+                      ],
+                      if (history.notes != null && history.notes!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text('Keterangan: ${history.notes}', style: const TextStyle(fontSize: 12)),
+                      ],
+                      if (history.photoPath != null && history.photoPath!.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text('Foto terlampir: ${history.photoPath!.split('/').last}',
+                            style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
                     ],
                   ),
                 ),
