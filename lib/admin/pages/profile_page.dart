@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../service_backend/auth_service.dart';
 import '../core/constants/app_colors.dart';
 import '../widgets/admin_page_frame.dart';
 import '../widgets/admin_section_card.dart';
@@ -105,9 +106,15 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed != true) return;
+
+    try {
+      // AuthGate otomatis kembali ke halaman Login setelah signOut
+      await AuthService().logout();
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fitur logout belum tersedia pada demo.')),
+        SnackBar(content: Text('Gagal logout: $e')),
       );
     }
   }
@@ -135,9 +142,9 @@ class _ProfilePageState extends State<ProfilePage> {
               title: 'Informasi Akun',
               child: Column(
                 children: [
-                  _AccountInfoRow(label: 'Status akun', value: 'Aktif'),
+                  const _AccountInfoRow(label: 'Status akun', value: 'Aktif'),
                   const Divider(height: 20),
-                  _AccountInfoRow(
+                  const _AccountInfoRow(
                     label: 'Hak akses',
                     value: 'Admin perpustakaan',
                   ),
@@ -174,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 _buildProfileHeader(wideLayout),
                 const SizedBox(height: 24),
-                if (constraints.maxWidth >= 620)
+                if (wideLayout)
                   Column(
                     children: [
                       Row(
@@ -261,15 +268,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileHeader(bool wideLayout) {
-    final avatar = const CircleAvatar(
+    const avatar = CircleAvatar(
       radius: 38,
       backgroundColor: AppColors.pale,
       child: Icon(Icons.person, color: AppColors.navy, size: 42),
     );
     final identity = Column(
-      crossAxisAlignment: wideLayout
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.center,
+      crossAxisAlignment:
+      wideLayout ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         Text(
           _name,
@@ -308,24 +314,24 @@ class _ProfilePageState extends State<ProfilePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: _editing
             ? [
-                OutlinedButton(
-                  onPressed: _cancelEditing,
-                  child: const Text('Batal'),
-                ),
-                const SizedBox(width: 10),
-                FilledButton.icon(
-                  onPressed: _saveProfile,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Simpan Perubahan'),
-                ),
-              ]
+          OutlinedButton(
+            onPressed: _cancelEditing,
+            child: const Text('Batal'),
+          ),
+          const SizedBox(width: 10),
+          FilledButton.icon(
+            onPressed: _saveProfile,
+            icon: const Icon(Icons.save),
+            label: const Text('Simpan Perubahan'),
+          ),
+        ]
             : [
-                FilledButton.icon(
-                  onPressed: _startEditing,
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Edit Profil'),
-                ),
-              ],
+          FilledButton.icon(
+            onPressed: _startEditing,
+            icon: const Icon(Icons.edit),
+            label: const Text('Edit Profil'),
+          ),
+        ],
       );
     }
 
@@ -333,33 +339,33 @@ class _ProfilePageState extends State<ProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: _editing
           ? [
-              FilledButton.icon(
-                onPressed: _saveProfile,
-                icon: const Icon(Icons.save),
-                label: const Text('Simpan Perubahan'),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: _cancelEditing,
-                child: const Text('Batal'),
-              ),
-            ]
+        FilledButton.icon(
+          onPressed: _saveProfile,
+          icon: const Icon(Icons.save),
+          label: const Text('Simpan Perubahan'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: _cancelEditing,
+          child: const Text('Batal'),
+        ),
+      ]
           : [
-              FilledButton.icon(
-                onPressed: _startEditing,
-                icon: const Icon(Icons.edit),
-                label: const Text('Edit Profil'),
-              ),
-            ],
+        FilledButton.icon(
+          onPressed: _startEditing,
+          icon: const Icon(Icons.edit),
+          label: const Text('Edit Profil'),
+        ),
+      ],
     );
   }
 
   Widget _buildProfileField(
-    String label,
-    TextEditingController controller, {
-    TextInputType? type,
-    String? hintText,
-  }) {
+      String label,
+      TextEditingController controller, {
+        TextInputType? type,
+        String? hintText,
+      }) {
     return LabeledTextFormField(
       label: label,
       controller: controller,
