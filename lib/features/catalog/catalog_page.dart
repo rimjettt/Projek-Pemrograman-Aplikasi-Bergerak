@@ -452,7 +452,7 @@ class _BookShelfTile extends StatelessWidget {
                 top: 6,
                 right: 6,
                 child: Material(
-                  color: Colors.white.withOpacity(0.94),
+                  color: Colors.white.withValues(alpha: 0.5),
                   shape: const CircleBorder(),
                   child: InkWell(
                     onTap: onLike,

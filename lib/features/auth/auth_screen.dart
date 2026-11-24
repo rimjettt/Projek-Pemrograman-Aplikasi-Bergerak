@@ -3,8 +3,17 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 
 class AuthScreen extends StatefulWidget {
-  final void Function(String, String, String) onRegistrationSuccess;
-  final ValueChanged<String> onLoginSuccess;
+  final Future<void> Function(
+      String,
+      String,
+      String,
+      String,
+      ) onRegistrationSuccess;
+
+  final Future<void> Function(
+      String,
+      String,
+      ) onLoginSuccess;
 
   const AuthScreen({
     super.key,
@@ -46,6 +55,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final inputPassword = password.text;
     String? error;
 
+    // Validasi input
     if (inputEmail.isEmpty || inputPassword.isEmpty) {
       error = 'Email dan kata sandi wajib diisi.';
     } else if (!inputEmail.contains('@') || !inputEmail.contains('.')) {
@@ -69,51 +79,83 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     final registering = isRegister;
+
     setState(() {
       loading = true;
       message = '';
+      success = false;
     });
 
-    await Future.delayed(
-      Duration(milliseconds: registering ? 1200 : 1500),
-    );
-    if (!mounted) return;
+    try {
+      if (registering) {
+        // Registrasi menggunakan Firebase
+        await widget.onRegistrationSuccess(
+          nama.text.trim(),
+          nim.text.trim(),
+          inputEmail,
+          inputPassword,
+        );
 
-    setState(() => loading = false);
+        if (!mounted) return;
 
-    if (registering) {
-      widget.onRegistrationSuccess(
-        nama.text,
-        nim.text,
-        inputEmail,
-      );
-      setState(() {
-        success = true;
-        message = 'Registrasi berhasil';
-      });
+        setState(() {
+          success = true;
+          message = 'Registrasi berhasil. Silakan login.';
+        });
 
-      await Future.delayed(const Duration(milliseconds: 1500));
+        await Future.delayed(const Duration(milliseconds: 1500));
+
+        if (!mounted) return;
+
+        setState(() {
+          message = '';
+          isRegister = false;
+          password.clear();
+          confirm.clear();
+          passwordVisible = false;
+          confirmVisible = false;
+        });
+      } else {
+        // Login menggunakan Firebase
+        await widget.onLoginSuccess(
+          inputEmail,
+          inputPassword,
+        );
+      }
+    } catch (e) {
       if (!mounted) return;
 
+      String errorMessage = 'Terjadi kesalahan. Silakan coba kembali.';
+
+      if (e.toString().contains('email-already-in-use')) {
+        errorMessage = 'Email sudah terdaftar.';
+      } else if (e.toString().contains('invalid-email')) {
+        errorMessage = 'Format email tidak valid.';
+      } else if (e.toString().contains('weak-password')) {
+        errorMessage = 'Kata sandi terlalu lemah.';
+      } else if (e.toString().contains('user-not-found') ||
+          e.toString().contains('invalid-credential') ||
+          e.toString().contains('wrong-password')) {
+        errorMessage = 'Email atau kata sandi salah.';
+      } else if (e.toString().contains('network-request-failed')) {
+        errorMessage = 'Periksa koneksi internet kamu.';
+      } else {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      }
+
       setState(() {
-        message = '';
-        isRegister = false;
-        password.clear();
-        confirm.clear();
-        passwordVisible = false;
-        confirmVisible = false;
+        success = false;
+        message = errorMessage;
       });
-    } else {
-      setState(() {
-        success = true;
-        message = 'Login berhasil';
-      });
-      await Future.delayed(const Duration(milliseconds: 500));
+    } finally {
       if (mounted) {
-        widget.onLoginSuccess(inputEmail);
+        setState(() {
+          loading = false;
+        });
       }
     }
   }
+
 
   Widget _field(
     String label,

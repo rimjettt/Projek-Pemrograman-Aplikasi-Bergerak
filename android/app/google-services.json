@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "640574968150",
+    "project_id": "pustakakudatabase",
+    "storage_bucket": "pustakakudatabase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640574968150:android:55e78763fdc0aeac2d06f7",
+        "android_client_info": {
+          "package_name": "com.example.pustakaku_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640574968150-6l3pgpoaul8ne6k7f77u267vl7ieac7i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtagdl4gZP2FlaRUt8BtkOBH_KJQGz6Cg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "640574968150-6l3pgpoaul8ne6k7f77u267vl7ieac7i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

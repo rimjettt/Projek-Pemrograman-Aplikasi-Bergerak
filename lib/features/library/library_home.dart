@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../core/app_colors.dart';
 import '../../core/date_formatter.dart';
 import '../../data/book_data.dart';
